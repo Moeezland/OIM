@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OIM | Registry Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top">
+    <div class="logo-area">
+      <img src="logo.png" alt="OIM logo" />
+    </div>
+
+    <div class="accessibility">
+      <button>◐</button>
+      <button>🌐</button>
+    </div>
+  </div>
+
+  <nav class="main-nav">
+    <div class="nav-container">
+      <a href="index.html">HOME <span>⌄</span></a>
+      <a href="#">MEMBER STATES <span>⌄</span></a>
+      <a href="services.html">SERVICES <span>⌄</span></a>
+      <a href="about.html">ABOUT <span>⌄</span></a>
+      <button class="search-btn">⌕</button>
+    </div>
+  </nav>
+</header>
+
+<main class="admin-page">
+
+  <div class="container">
+
+    <div class="admin-card">
+
+      <h1>Registry Dashboard</h1>
+
+      <p>
+        Generate and register official OIM registry numbers.
+      </p>
+
+      <div class="admin-grid">
+
+        <input
+          id="registryNumber"
+          class="full"
+          type="text"
+          maxlength="10"
+          placeholder="10 digit registry number"
+        />
+
+        <button id="generateBtn" class="admin-btn">
+          GENERATE RANDOM
+        </button>
+
+        <button id="createBtn" class="admin-btn">
+          CREATE REGISTRY
+        </button>
+
+      </div>
+
+      <div class="success-box" id="successBox">
+        Registry number created successfully.
+      </div>
+
+    </div>
+
+    <div class="admin-card" style="margin-top:30px;">
+
+      <h1>Member State Dashboard</h1>
+
+      <p>
+        Add or update OIM member states shown on the public website.
+      </p>
+
+      <div class="admin-grid">
+
+        <input id="microId" class="full" type="text" placeholder="Document ID, e.g. Moeezland" />
+        <input id="microFullName" class="full" type="text" placeholder="Micronation full name" />
+        <input id="microCountry" type="text" placeholder="Country" />
+
+        <select id="microStatus">
+          <option value="Member">Member</option>
+          <option value="Observer">Observer</option>
+          <option value="Suspended">Suspended</option>
+        </select>
+
+        <input id="microImage" type="text" placeholder="Image filename, e.g. moeezland.png" />
+        <input id="microWikiUrl" type="url" placeholder="MicroWiki URL" />
+        <input id="microJoinDate" class="full" type="date" />
+
+        <button id="saveMicroBtn" class="admin-btn full">
+          SAVE MEMBER STATE
+        </button>
+
+      </div>
+
+      <div class="success-box" id="microSuccessBox">
+        Member state saved successfully.
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<aside class="quick-tools">
+  <button>?</button>
+  <button>⌯</button>
+  <button>▦</button>
+</aside>
+
+<button class="chat-btn">💬</button>
+
+<footer class="footer gov-footer">
+  <div class="footer-glow"></div>
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <img src="footer.png" alt="OIM emblem" class="footer-emblem" />
+      <h2>Organization of Islamic<br>Micronations</h2>
+      <p class="footer-subtitle">Official Government Website</p>
+
+      <h4>Connect With Us</h4>
+      <div class="footer-socials" aria-label="Social links">
+        <a href="#" aria-label="Discord">☁</a>
+        <a href="#" aria-label="PayPal">P</a>
+        <a href="#" aria-label="YouTube">▻</a>
+      </div>
+    </div>
+
+    <div class="footer-column">
+      <h3>Legal Notice</h3>
+      <p>All content on this website is the property of the Organization of Islamic Micronations and is protected by national and international copyright laws.</p>
+      <p>"OIM", its emblem, and associated symbols are registered trademarks and official insignia of the Organization of Islamic Micronations. Unauthorized use is strictly prohibited.</p>
+    </div>
+
+    <div class="footer-column">
+      <h3>Official Inquiries</h3>
+      <p>For official inquiries only (diplomatic, partnerships, or micronation-related).</p>
+
+      <div class="contact-card">
+        <span class="contact-icon">▱</span>
+        <div>
+          <small>Discord</small>
+          <strong>OIM Secretariat</strong>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <span class="contact-icon">✉</span>
+        <div>
+          <small>Official Email</small>
+          <strong>info@oim.int</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-column footer-newsletter">
+      <h3>Newsletter</h3>
+      <p>Receive official announcements from the Organization of Islamic Micronations.</p>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email" aria-label="Email address" />
+        <button type="button">✈ Subscribe</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2026 Organization of Islamic Micronations. All rights reserved.</p>
+  </div>
+</footer>
+
+<script type="module">
+
+import { auth, db } from "./firebase.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const registryInput = document.querySelector("#registryNumber");
+const generateBtn = document.querySelector("#generateBtn");
+const createBtn = document.querySelector("#createBtn");
+const successBox = document.querySelector("#successBox");
+
+const microIdInput = document.querySelector("#microId");
+const microFullNameInput = document.querySelector("#microFullName");
+const microCountryInput = document.querySelector("#microCountry");
+const microStatusInput = document.querySelector("#microStatus");
+const microImageInput = document.querySelector("#microImage");
+const microWikiUrlInput = document.querySelector("#microWikiUrl");
+const microJoinDateInput = document.querySelector("#microJoinDate");
+const saveMicroBtn = document.querySelector("#saveMicroBtn");
+const microSuccessBox = document.querySelector("#microSuccessBox");
+
+let currentUser = null;
+let isAdmin = false;
+let authChecked = false;
+
+// Lock buttons until Firebase finishes checking the logged-in user's role.
+generateBtn.disabled = true;
+createBtn.disabled = true;
+saveMicroBtn.disabled = true;
+generateBtn.textContent = "CHECKING ADMIN...";
+createBtn.textContent = "CHECKING ADMIN...";
+saveMicroBtn.textContent = "CHECKING ADMIN...";
+
+function unlockAdminTools() {
+  generateBtn.disabled = false;
+  createBtn.disabled = false;
+  saveMicroBtn.disabled = false;
+  generateBtn.textContent = "GENERATE RANDOM";
+  createBtn.textContent = "CREATE REGISTRY";
+  saveMicroBtn.textContent = "SAVE MEMBER STATE";
+}
+
+function lockAdminTools() {
+  generateBtn.disabled = true;
+  createBtn.disabled = true;
+  saveMicroBtn.disabled = true;
+}
+
+// Protect this page: only logged-in users with role "admin" can use it.
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  authChecked = true;
+
+  if (!user) {
+    alert("Please login with your admin account first.");
+    window.location.href = "admin_login.html";
+    return;
+  }
+
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      lockAdminTools();
+      alert("Access denied. No user profile found in Firestore for this account.");
+      window.location.href = "member.html";
+      return;
+    }
+
+    const userData = userSnap.data();
+    const role = String(userData.role || "").trim().toLowerCase();
+
+    if (role !== "admin") {
+      lockAdminTools();
+      alert(`Access denied. Admins only. Your current role is: ${userData.role || "missing"}`);
+      window.location.href = "member.html";
+      return;
+    }
+
+    isAdmin = true;
+    unlockAdminTools();
+  } catch (error) {
+    lockAdminTools();
+    alert("Admin check failed: " + error.message);
+    window.location.href = "admin_login.html";
+  }
+});
+
+generateBtn.addEventListener("click", () => {
+  if (!authChecked || !isAdmin) {
+    alert("Please wait. Admin access is still being checked.");
+    return;
+  }
+
+  let random = "";
+
+  for (let i = 0; i < 10; i++) {
+    random += Math.floor(Math.random() * 10);
+  }
+
+  registryInput.value = random;
+});
+
+createBtn.addEventListener("click", async () => {
+  if (!authChecked) {
+    alert("Please wait. Admin access is still being checked.");
+    return;
+  }
+
+  if (!currentUser || !isAdmin) {
+    alert("Access denied. Admins only.");
+    return;
+  }
+
+  const registryNumber = registryInput.value.trim();
+
+  if (!/^\d{10}$/.test(registryNumber)) {
+    alert("Registry number must be exactly 10 digits.");
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "oimRegistry", registryNumber), {
+      used: false,
+      assignedEmail: "",
+      assignedTo: "",
+      createdAt: serverTimestamp(),
+      createdBy: currentUser.uid
+    });
+
+    successBox.style.display = "block";
+    alert("Registry number created successfully.");
+  } catch (error) {
+    alert("Could not create registry number: " + error.message);
+  }
+});
+
+
+saveMicroBtn.addEventListener("click", async () => {
+  if (!authChecked) {
+    alert("Please wait. Admin access is still being checked.");
+    return;
+  }
+
+  if (!currentUser || !isAdmin) {
+    alert("Access denied. Admins only.");
+    return;
+  }
+
+  const microId = microIdInput.value.trim();
+  const fullName = microFullNameInput.value.trim();
+  const country = microCountryInput.value.trim();
+  const status = microStatusInput.value;
+  const image = microImageInput.value.trim();
+  const microWikiUrl = microWikiUrlInput.value.trim();
+  const joinDateValue = microJoinDateInput.value;
+
+  if (!microId || !fullName || !country || !status || !image || !microWikiUrl || !joinDateValue) {
+    alert("Please fill all member state fields.");
+    return;
+  }
+
+  if (!["Member", "Observer", "Suspended"].includes(status)) {
+    alert("Status must be Member, Observer, or Suspended.");
+    return;
+  }
+
+  try {
+    const existingSnap = await getDoc(doc(db, "micronations", microId));
+
+    if (existingSnap.exists()) {
+      const confirmUpdate = confirm("This member state already exists. Do you want to update it?");
+      if (!confirmUpdate) return;
+    }
+
+    const joinDate = Timestamp.fromDate(new Date(joinDateValue + "T00:00:00"));
+
+    await setDoc(doc(db, "micronations", microId), {
+      fullName,
+      country,
+      status,
+      image,
+      microWikiUrl,
+      joinDate,
+      updatedAt: serverTimestamp(),
+      updatedBy: currentUser.uid
+    }, { merge: true });
+
+    microSuccessBox.style.display = "block";
+    alert("Member state saved successfully.");
+  } catch (error) {
+    alert("Could not save member state: " + error.message);
+  }
+});
+
+</script>
+
+</body>
+</html>
