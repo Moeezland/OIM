@@ -13,11 +13,28 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const registerForm = document.querySelector("#registerForm");
+const submitBtn = registerForm.querySelector("button[type='submit']");
+
+let registrationInProgress = false;
+
+function lockForm() {
+  registrationInProgress = true;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "CREATING ACCOUNT...";
+}
+
+function unlockForm() {
+  registrationInProgress = false;
+  submitBtn.disabled = false;
+  submitBtn.textContent = "CREATE ACCOUNT";
+}
 
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const email = document.querySelector("#registerEmail").value.trim();
+  if (registrationInProgress) return;
+
+  const email = document.querySelector("#registerEmail").value.trim().toLowerCase();
   const password = document.querySelector("#registerPassword").value;
   const registryNumber = document.querySelector("#registryNumber").value.trim();
 
@@ -26,6 +43,8 @@ registerForm.addEventListener("submit", async (e) => {
     return;
   }
 
+  lockForm();
+
   const registryRef = doc(db, "oimRegistry", registryNumber);
 
   try {
@@ -33,11 +52,13 @@ registerForm.addEventListener("submit", async (e) => {
 
     if (!registrySnap.exists()) {
       alert("This OIM registry number does not exist.");
+      unlockForm();
       return;
     }
 
     if (registrySnap.data().used === true) {
       alert("This OIM registry number is already used.");
+      unlockForm();
       return;
     }
 
@@ -75,11 +96,18 @@ registerForm.addEventListener("submit", async (e) => {
       window.location.href = "dashboard.html";
 
     } catch (claimError) {
-      await deleteUser(user);
+      try {
+        await deleteUser(user);
+      } catch (deleteError) {
+        console.error(deleteError);
+      }
+
       alert("Account was not created because the registry number could not be claimed. Please try again.");
+      unlockForm();
     }
 
   } catch (error) {
     alert("Account creation failed: " + error.message);
+    unlockForm();
   }
 });
